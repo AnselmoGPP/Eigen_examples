@@ -1,0 +1,6 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+PROJECT(Eigen_examples)
+
+ADD_EXECUTABLE(${PROJECT_NAME}
+	src/Basics.cpp
+)
