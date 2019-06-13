@@ -123,7 +123,7 @@ int main() {
 	//fixed_size();
 	//matrix_template_class()
 	//resizing_and_assigning();
-	//addition_subtraction();
+	addition_subtraction();
 	multiplication_division();
 }
 
