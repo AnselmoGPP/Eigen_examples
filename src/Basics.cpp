@@ -4,7 +4,7 @@
 	- VectorNt		== Matrix<type, N, 1>		Example: Vector2f == Matrix<float, 2, 1>
 	- RowVectorNt	== Matrix<type, 1, N>		Example: RowVector3d == Matrix<double, 1, 3>
 
-	where:	N == 2, 3, 4, Dynamic
+	where:	N == 2, 3, 4, X, Dynamic (not known at compile-time).
 			t == i (int), f (float), d (double), cf (complex<float>), cd (complex<double>)
 */
 
@@ -15,8 +15,7 @@ using namespace Eigen;
 
 // ----------------------------------------
 
-void simple_matrix() {
-
+void simple_matrix() {					// (1)
 	MatrixXd matr(2, 2);		// MatrixXd has doubles. MatrixXi has integers.
 	matr(0, 0) = 1;
 	matr(0, 1) = 2;
@@ -30,8 +29,7 @@ void simple_matrix() {
 	std::cout << matr << std::endl;
 }
 
-void random_and_constant() {
-
+void random_and_constant() {				// (2)
 	MatrixXd ran = MatrixXd::Random(3, 3);				// Random between -1 and 1
 	std::cout << ran << std::endl;
 
@@ -39,23 +37,19 @@ void random_and_constant() {
 	std::cout << con << std::endl;
 }
 
-void vector() {
-
+void vector() {						// (3)
 	VectorXd vec(3);			// VectorXd has doubles. VectorXi has integers.
 	vec << 1, 2, 3.5;
 	std::cout << vec << std::endl;
 }
 
-void random_between_4_and_10() {
-
+void random_between_2_and_8() {				// (4)
 	MatrixXd matr = MatrixXd::Random(3, 3);
 	matr = (matr * (6/2)) + MatrixXd::Constant(3,3,5);
 	std::cout << matr << std::endl;
-
 }
 
-void fixed_size() {
-
+void fixed_size() {					// (5)
 	Matrix4d m4 = Matrix4d::Random();
 	std::cout << m4 << std::endl;
 
@@ -63,13 +57,13 @@ void fixed_size() {
 	std::cout << v4 << std::endl;
 }
 
-void matrix_template_class() {
+void matrix_template_class() {				// (6)
 	//In Eigen, all matrices and vectors are objects of the Matrix template class.
 	//Vectors are just a special case of matrices, with either 1 row or 1 column.
 
 	// Matrix<typename, RowsAtCompileTime, ColsAtCompileTime, StorageOrder, MaxRowsAtCompileTime, MaxColsAtCompileTime>
 	Matrix<double, 3, 2> matr1;
-	Matrix<double, 3, 5, 0> matr6;								// 0=ColMajor, 1=RowMajor (default)
+	Matrix<double, 3, 5, 0> matr6;								// 0=ColMajor(default), 1=RowMajor 
 	Matrix<double, Dynamic, Dynamic, RowMajor, 10, 10> matr5;
 
 	Matrix<double, Dynamic, Dynamic> matr2;
@@ -77,8 +71,7 @@ void matrix_template_class() {
 	Matrix<double, Dynamic, 5> matr4;
 }
 	
-void resizing_and_assigning() {
-
+void resizing_and_assigning() {				// (7)
 	MatrixXd matr(2, 3);
 	matr.resize(3, 5);				// If the size changes with resize(), the values of the coefficients may change
 	matr.conservativeResize(5, 4);	// The values of the coefficients doesn't change
@@ -89,8 +82,7 @@ void resizing_and_assigning() {
 	matr = matr2;					// matr is resized
 }
 
-void addition_subtraction() {
-	
+void addition_subtraction() {				// (8)
 	MatrixXd m1(2, 2);
 	m1 << 1, 2, 3, 4;
 	Matrix2d m2;
@@ -105,8 +97,79 @@ void addition_subtraction() {
 	std::cout << m1 << std::endl << std::endl;
 }
 
-void multiplication_division() {
+void scalar_multiplication_division() {			// (9)
+// Escalar multiplication/division
+	Matrix2d a;
+	a << 1, 2, 3, 4;
+	Vector3d v(1,2,3);
+	
+	std::cout << a * 2.5 << std::endl;
+	std::cout << 0.1 * v << std::endl;
+	v *= 2;
+	std::cout << v << std::endl;
+	v /= 2;
+	std::cout << v << std::endl;
 
+// Matrix/vector multiplication/division
+	Matrix2d mat;
+	mat << 1, 2, 3, 4;
+	Vector2d u(-1,1), v(2,0);
+	std::cout << mat*mat << std::endl;
+	std::cout << mat*u << std::endl;
+	std::cout << u.transpose()*mat << std::endl;
+	std::cout << u.transpose()*v << std::endl;
+	std::cout << u*v.transpose() << std::endl;
+	mat = mat*mat;
+}
+
+void transposition_conjugation(){			// (10)
+	MatrixXcf a = MatrixXcf::Random(2,2);
+	MatrixXcf b = MatrixXcf::Random(2,2);
+	MatrixXcf c = MatrixXcf::Random(2,2);
+	
+	std::cout << a << endl;
+	std::cout << a.transpose() << std::endl;
+	std::cout << a.conjugate() << std::endl;
+	std::cout << a.adjoint() << std::endl;
+	
+	//a = a.transpose(); 			// Wrong (the aliasing issue: no temporary is created)
+	//a = a.adjoint();			// Wrong (the aliasing issue: no temporary is created)
+	a.transposeInPlace();
+	a.adjointInPlace();
+	c.noalias() += a * b;			// If your matrix product can be safely evaluated into the destination matrix without aliasing issue, then you can use noalias() to avoid the temporary
+}
+
+void dot_and_cross_product(){				// (11)
+	Vector3d v(1,2,3);
+	Vector3d w(0,1,2);
+
+	std::cout << v.dot(w) << endl;		// Cross product is only for vectors of size 3
+	double dp = v.adjoint()*w; 		// Automatic conversion of the inner product to a scalar
+	std::cout << dp << endl;
+	std::cout << v.cross(w) << endl;	// Dot product is for vectors of any sizes
+}
+
+void reduction_ops(){
+	Matrix2d mat;
+	mat << 1, 2, 3, 4;
+	
+	std::cout << mat.sum() << endl;
+	std::cout << mat.prod() << endl;
+	std::cout << mat.mean() << endl;
+	std::cout << mat.minCoeff() << endl;
+	std::cout << mat.maxCoeff() << endl;
+	std::cout << mat.trace() << endl;	// Sum of the diagonal coefficients. Also computed as efficiently using a.diagonal().sum()
+
+	Matrix3f m = Matrix3f::Random();
+	std::ptrdiff_t i, j;	
+	float minOfM = m.minCoeff(&i,&j);
+	std::cout << m << endl;
+	std::cout << "The minimum coefficient (" << minOfM << ") is at position (" << i << "," << j << ")\n\n";
+	
+	RowVector4i v = RowVector4i::Random();
+	int maxOfV = v.maxCoeff(&i);
+	std::cout << v << std::endl;
+	std::cout << "The maximum coefficient (" << maxOfV << ") is at position " << i << endl;
 }
 
 
@@ -115,37 +178,67 @@ void multiplication_division() {
 
 
 int main() {
-    
-	//simple_matrix();
-	//random_and_constant();
-	//vector();
-	//random_between_4_and_10();
-	//fixed_size();
-	//matrix_template_class()
-	//resizing_and_assigning();
-	addition_subtraction();
-	multiplication_division();
+	unsigned int val = 0;
+	
+	for(;;){
+		std::cout << "\nEnter function number: ";
+		std::cin >> val;
+		std::cout << "-----------------------" << std::endl;
+		
+		switch(val) {
+			case 1:
+				simple_matrix();
+				break;
+			case 2:
+				random_and_constant();
+				break;
+			case 3:
+				vector();
+				break;
+			case 4:
+				random_between_4_and_10();
+				break;
+			case 5:
+				fixed_size();
+				break;
+			case 6:
+				matrix_template_class()
+				break;
+			case 7:
+				resizing_and_assigning();
+				break;
+			case 8:
+				addition_subtraction();
+				break;
+			case 9:
+				scalar_multiplication_division();
+				break;
+			case 10:
+				transposition_conjugation();
+				break;
+			case 11:
+				dot_and_cross_product()
+				break;
+			case 12:
+				break;
+			case 13:
+				break;
+			case 14:
+				break;
+			case 15:
+				break;
+			case 16:
+				break;
+			case 17:
+				break;
+			case 18:
+				break;
+			case 19:
+				break;
+			case 20:
+				break;				
+			default:
+				return 0;		
+		}
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Ejecutar programa: Ctrl + F5 o menú Depurar > Iniciar sin depurar
-// Depurar programa: F5 o menú Depurar > Iniciar depuración
-
-// Sugerencias para primeros pasos: 1. Use la ventana del Explorador de soluciones para agregar y administrar archivos
-//   2. Use la ventana de Team Explorer para conectar con el control de código fuente
-//   3. Use la ventana de salida para ver la salida de compilación y otros mensajes
-//   4. Use la ventana Lista de errores para ver los errores
-//   5. Vaya a Proyecto > Agregar nuevo elemento para crear nuevos archivos de código, o a Proyecto > Agregar elemento existente para agregar archivos de código existentes al proyecto
-//   6. En el futuro, para volver a abrir este proyecto, vaya a Archivo > Abrir > Proyecto y seleccione el archivo .sln
